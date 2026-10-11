@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nudge</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap">
+<style>
+:root{--bg:#F3F6F9;--ink:#17233B;--muted:#56637A;--card:#fff;--line:#D5DDE8;--cls:#26395F;--task:#2A8573;--bad:#C4332A;--acc:#2A8573;--onacc:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1726;--ink:#E8EDF6;--muted:#9AA7BD;--card:#18233A;--line:#2B3A57;--cls:#3B5489;--task:#3FA58F;--bad:#F07167;--acc:#3FA58F;--onacc:#0F1726}}
+:root[data-theme="dark"]{--bg:#0F1726;--ink:#E8EDF6;--muted:#9AA7BD;--card:#18233A;--line:#2B3A57;--cls:#3B5489;--task:#3FA58F;--bad:#F07167;--acc:#3FA58F;--onacc:#0F1726}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 "Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input{font:inherit;color:var(--ink)}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.app{display:flex;height:100%}
+.side{width:230px;padding:20px 14px;display:flex;flex-direction:column;flex:none}
+.logo{font-size:26px;font-weight:800;letter-spacing:-.02em;padding:0 10px 22px}
+.nv,.rc,.all{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:9px 10px;font-weight:600}
+.nv.on,.rc.on{background:var(--card);box-shadow:0 0 0 1px var(--line)}
+.rh{color:var(--muted);font-size:13px;padding:26px 10px 6px}
+.rc{font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.all{margin-top:auto;color:var(--muted)}
+.panel{flex:1;margin:14px 14px 14px 0;background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.bar{display:flex;align-items:center;gap:8px;padding:14px 16px}
+.pill{border:1px solid var(--ink);background:none;border-radius:8px;padding:6px 14px;font-weight:600}
+.ar{border:0;background:none;font-size:22px;padding:0 8px}
+#ttl{font-size:19px;font-weight:600;margin-left:6px}
+.sp{flex:1}.bar button{white-space:nowrap}
+.pri{background:var(--acc);color:var(--onacc);border:0;border-radius:8px;padding:8px 14px;font-weight:600}
+#vcal{display:flex;flex:1;min-height:0}
+.calw{flex:1;display:flex;flex-direction:column;min-width:0}
+.hd,.bd{display:grid;grid-template-columns:52px repeat(7,minmax(70px,1fr))}
+.hd{border-bottom:2px solid var(--ink);padding-right:0}
+.hd div{padding:6px 4px;text-align:center;font-size:12px;font-weight:600;color:var(--muted)}
+.hd b{display:block;font-size:18px;color:var(--ink)}
+.hd .td b{background:var(--acc);color:var(--onacc);border-radius:50%;width:30px;height:30px;line-height:30px;margin:0 auto}
+#grid{flex:1;overflow:auto;position:relative}
+.col{position:relative;border-left:1px solid var(--line);background-image:linear-gradient(var(--line) 1px,transparent 1px);background-size:100% 44px}
+.gut{position:relative}.gut span{position:absolute;right:6px;font-size:11px;color:var(--muted);transform:translateY(-7px)}
+.blk{position:absolute;left:3px;right:3px;border-radius:6px;padding:2px 6px;font-size:12px;line-height:15px;color:#fff;overflow:hidden;border:0;text-align:left;width:auto}
+.blk.e{background:var(--cls)}.blk.t{background:var(--task);cursor:pointer}.blk.m{outline:2px solid var(--bad)}
+.blk small{display:block;opacity:.85;font-size:11px}
+.now{position:absolute;left:0;right:0;border-top:2px solid var(--bad);z-index:2}
+#drawer{width:340px;border-left:1px solid var(--line);display:none}
+#vchat,#vall{flex:1;min-height:0;overflow:auto;padding:0 16px 16px}
+#chatbox{display:flex;flex-direction:column;height:100%;min-height:0}
+.ch{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;font-weight:600}
+#msgs{flex:1;overflow:auto;padding:0 14px}
+.m{max-width:88%;padding:8px 12px;border-radius:12px;margin:0 0 8px;white-space:pre-wrap;overflow-wrap:anywhere}
+.m.user{margin-left:auto;background:var(--acc);color:var(--onacc)}.m.assistant{background:var(--bg)}
+.row{display:flex;gap:8px;padding:10px 14px}
+input{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;min-width:0}
+.row input{flex:1}
+details{padding:0 14px 12px;font-size:13px}summary{cursor:pointer;color:var(--muted)}
+.q{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.q input{flex:1 1 90px}
+.q button,.alt{background:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+.empty{color:var(--muted);padding:14px}
+.li{display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid var(--line)}
+.gut span:first-child{transform:none}
+button[disabled]{opacity:.4;cursor:default}
+.fbk{display:block;width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:9px 10px;color:var(--muted)}.fbk:hover{background:var(--card)}
+textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;width:100%;resize:vertical}
+.blk.sk{opacity:.4;text-decoration:line-through}
+.hd small{display:block;font-size:11px;color:var(--acc);font-weight:600;min-height:14px}
+.tc{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}.th{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.cr{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--line);align-items:center}.cr small{display:block}.sm2{padding:5px 10px;font-size:13px}
+.mc .chips .chip{font-size:14px}
+#hello{padding:16px 18px 0}.hi{font-size:24px;font-weight:800;letter-spacing:-.02em}.hs{color:var(--muted);font-size:14px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;margin-top:2px}
+.lk{background:none;border:0;padding:0;color:var(--acc);font-weight:600;text-decoration:underline;font-size:14px}
+.rr{display:flex;align-items:center;border-radius:8px}.rr:hover{background:var(--card)}.rr.on{background:var(--card);box-shadow:0 0 0 1px var(--line)}
+.rr .lt{flex:1;min-width:0}.rr .rc{width:100%;padding:8px 10px}.rr.on .rc{box-shadow:none;background:none}
+.dots{background:none;border:0;padding:4px 8px;border-radius:6px;opacity:.55;font-size:18px;line-height:1}.dots:hover,.rr:hover .dots{opacity:1}
+#menu{position:fixed;display:none;z-index:20;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:4px;min-width:150px;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+#menu button{display:block;width:100%;text-align:left;background:none;border:0;padding:9px 12px;border-radius:6px}#menu button:hover{background:var(--bg)}
+#ctitle{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ch{gap:6px}.ti{width:100%;padding:4px 8px}.lt{flex:1;min-width:0}.lt .rc{width:100%}.lb{display:flex;gap:6px;flex:none}.sm{display:block;color:var(--muted);font-size:12px}
+.blk{touch-action:none;user-select:none;cursor:grab}.blk.d{opacity:.45;text-decoration:line-through}
+#modal{position:fixed;inset:0;background:rgba(10,18,32,.5);display:none;align-items:center;justify-content:center;z-index:9;padding:16px}
+.mc{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;width:100%;max-width:420px;max-height:90%;overflow:auto}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:18px}
+.seg{display:flex;gap:6px;margin-bottom:6px}.seg button,.chip{border:1px solid var(--line);background:none;border-radius:999px;padding:6px 14px}
+.seg button.on,.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.mc label{display:block;font-size:13px;color:var(--muted);margin:12px 0 5px}.mc input{width:100%;padding:10px;font-size:16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.mc .pri{width:100%;margin-top:16px;padding:12px;font-size:16px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:10;display:none;max-width:90%}
+.sug{display:flex;flex-wrap:wrap;gap:6px}.sug button{border:1px solid var(--line);background:none;border-radius:999px;padding:7px 12px;font-size:13px}
+@media (max-width:820px){.app{flex-direction:column}.side{width:auto;flex-direction:row;padding:10px;gap:6px;align-items:center;flex-wrap:wrap}.logo{padding:0 8px}.nv{width:auto}.rh,#rec,.all{display:none}.panel{margin:0 10px 10px}#vcal{flex-direction:column}#drawer{width:auto;border-left:0;border-top:1px solid var(--line);height:55%}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+<div class="logo">Nudge</div>
+<button class="nv" id="nvc" onclick="go('cal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2.5" width="12" height="11.5" rx="2"/><path d="M2 6.5h12"/></svg>Calendar</button>
+<button class="nv" id="nvk" onclick="go('cls')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg>Classes</button>
+<button class="nv" id="nvh" onclick="go('chat')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2.5 8a5.5 5 0 1 1 2.2 4L2 13.5l.8-3A5 5 0 0 1 2.5 8z"/></svg>Chats</button>
+<div class="rh">Recents</div><div id="rec"></div>
+<button class="all" onclick="go('all')">All chats &rsaquo;</button>
+<button class="fbk" onclick="openFeedback()">Feedback</button>
+</aside>
+<main class="panel">
+<div id="vcal">
+<div class="calw">
+<div id="hello"></div>
+<div class="bar"><button class="pill" onclick="today()">Today</button><button class="ar" aria-label="Previous week" onclick="shift(-1)">&lsaquo;</button><button class="ar" aria-label="Next week" onclick="shift(1)">&rsaquo;</button><span id="ttl"></span><button class="alt" id="undob" onclick="undo()" title="Undo (Ctrl+Z)" aria-label="Undo">&#8630; Undo</button><button class="alt" id="redob" onclick="redo()" title="Redo (Ctrl+Shift+Z)" aria-label="Redo">Redo &#8631;</button><span class="sp"></span><button class="alt" onclick="openAdd()">+ Add</button><button class="pri" onclick="toggleDrawer()">Chat</button></div>
+<div class="hd" id="hd"></div>
+<div id="grid"><div class="bd" id="bd"></div></div>
+</div>
+<div id="drawer"></div>
+</div>
+<div id="vchat" hidden style="padding:0"></div>
+<div id="vall" hidden></div>
+<div id="vcls" hidden style="flex:1;overflow:auto;padding:18px 22px"><div class="mc" id="vc" style="max-width:600px;border:0;background:none;padding:0;max-height:none;overflow:visible"></div></div>
+</main>
+</div>
+
+<div id="chatbox">
+<div class="ch"><span id="ctitle">Ask Nudge</span><button class="alt" onclick="renameChat(S.cur)">Rename</button><button class="alt" id="pinb" onclick="pinChat(S.cur)">Pin</button><button class="alt" onclick="newChat()">New</button></div>
+<div id="msgs"></div>
+<div class="row"><input id="inp" placeholder="Message Nudge: add tasks, ask what's next, get help" aria-label="Message"><button class="pri" onclick="send()">Send</button></div>
+<details><summary>More</summary><div class="q"><label>Import .ics <input id="ics" type="file" accept=".ics,text/calendar"></label><button onclick="sample()">Load sample week</button><button onclick="clearAll()">Clear all</button></div></details>
+</div>
+
+<form name="feedback" data-netlify="true" hidden><input name="category"><textarea name="message"></textarea><input name="email"></form>
+<div id="modal"><div class="mc" id="mc"></div></div><div id="menu" role="menu"></div><div id="toast" role="status"></div>
+<script>
+var K="nudge_v2",M=60000,H0=0,H1=24,PX=44,S={events:[],tasks:[],set:{ds:8,de:21,buf:15,cap:240},chats:[],cur:null};
+try{var raw=localStorage.getItem(K);if(raw)S=JSON.parse(raw)}catch(e){}
+S.classes=S.classes||[];S.terms=S.terms||[];
+var wk=0,view="cal",drawer=window.innerWidth>820,busy=false;
+function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
+function $(i){return document.getElementById(i)}
+function uid(){return Math.random().toString(36).slice(2,9)}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function dayAt(i){var x=new Date();x.setHours(0,0,0,0);x.setDate(x.getDate()+i);return x.getTime()}
+function wkDay(i){var x=new Date();x.setHours(0,0,0,0);x.setDate(x.getDate()-x.getDay()+wk*7+i);return x}
+function tm(t){return new Date(t).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}
+function dstr(t){return new Date(t).toLocaleDateString([],{weekday:"short",month:"short",day:"numeric"})}
+
+var UND=[],RED=[],lastSnap=null;
+function snap(){return JSON.stringify({events:S.events,tasks:S.tasks,classes:S.classes,terms:S.terms,set:S.set})}
+function applySnap(j){var o=JSON.parse(j);S.events=o.events;S.tasks=o.tasks;S.classes=o.classes;S.terms=o.terms;S.set=o.set;lastSnap=snap();save();render()}
+function undo(){if(!UND.length){toast("Nothing to undo");return}RED.push(lastSnap);applySnap(UND.pop());toast("Undone")}
+function redo(){if(!RED.length){toast("Nothing to redo");return}UND.push(lastSnap);applySnap(RED.pop());toast("Redone")}
+document.addEventListener("keydown",function(e){
+  if(!(e.ctrlKey||e.metaKey)||String(e.key).toLowerCase()!=="z")return;
+  var t=e.target&&e.target.tagName;if(t==="INPUT"||t==="TEXTAREA")return;
+  e.preventDefault();if(e.shiftKey)redo();else undo()});
+// Scheduler: tasks go only into free time, padded by the gap, inside the day window and daily cap.
+function place(t,now){
+  var buf=S.set.buf*M,mins=t.mins*M,busy=[];
+  evs(dayAt(-1),dayAt(16)).forEach(function(e){busy.push([e.s-buf,e.e+buf])});
+  S.tasks.forEach(function(x){if(x.id!==t.id&&!x.done&&x.slot)busy.push([x.slot.s-buf,x.slot.e+buf])});
+  busy.sort(function(a,b){return a[0]-b[0]});
+  for(var d=0;d<14;d++){
+    var d0=dayAt(d),d1=dayAt(d+1),ws=d0+S.set.ds*36e5,we=d0+S.set.de*36e5;
+    var cur=d===0?Math.max(ws,Math.ceil(now/(15*M))*15*M):ws,used=0;
+    S.tasks.forEach(function(x){if(x.id!==t.id&&!x.done&&x.slot&&x.slot.s>=d0&&x.slot.s<d1)used+=x.mins});
+    if(used+t.mins>S.set.cap)continue;
+    for(var i=0;i<busy.length;i++){var b=busy[i];if(b[1]<=cur)continue;if(b[0]>=we)break;if(b[0]-cur>=mins)break;cur=Math.max(cur,b[1])}
+    if(cur+mins<=we){t.slot={s:cur,e:cur+mins};return}
+  }
+  t.slot=null;
+}
+// "redo" re-places missed tasks, "all" re-packs future tasks; otherwise only new or conflicting tasks move.
+function plan(mode){
+  var pre=snap();if(lastSnap!==null&&pre!==lastSnap){UND.push(lastSnap);if(UND.length>40)UND.shift();RED=[]}
+  var now=Date.now(),EV=evs(dayAt(-7),dayAt(60));
+  S.tasks.forEach(function(t){
+    if(t.done||!t.slot)return;
+    var miss=mode==="redo"&&t.slot.e<now,fut=mode==="all"&&t.slot.s>=now;
+    var hit=!t.pin&&EV.some(function(e){return e.s<t.slot.e&&e.e>t.slot.s});
+    if(hit||miss||fut){t.slot=null;t.pin=false}});
+  S.tasks.filter(function(t){return !t.done&&!t.slot}).sort(function(a,b){return (a.due||9e15)-(b.due||9e15)||b.mins-a.mins})
+    .forEach(function(t){place(t,now)});
+  lastSnap=snap();save();render();
+}
+function mkTask(title,mins,dueStr){var d=dueStr?new Date(dueStr+"T23:59").getTime():0;S.tasks.push({id:uid(),title:title,mins:Math.max(5,mins|0),due:isNaN(d)?0:d,done:false,slot:null});plan();return S.tasks[S.tasks.length-1]}
+function mkEvent(title,date,s,e){var a=new Date(date+"T"+s).getTime(),b=new Date(date+"T"+e).getTime();if(!(b>a))return false;S.events.push({id:uid(),title:title||"Event",s:a,e:b});plan();return true}
+function tog(id){S.tasks.forEach(function(t){if(t.id===id)t.done=!t.done});plan()}
+function clearAll(){if(confirm("Delete all tasks, events and classes from this browser?")){S.events=[];S.tasks=[];S.classes=[];S.terms=[];plan()}}
+function sample(){
+  for(var i=0;i<7;i++){var d=dayAt(i-new Date().getDay()+1);if(i>4)break;
+    S.events.push({id:uid(),title:"Bio lecture",s:d+9*36e5,e:d+10.5*36e5},{id:uid(),title:"Calculus",s:d+11*36e5,e:d+12.5*36e5})}
+  var du=function(n){return dayAt(n)+86340000};
+  S.tasks.push({id:uid(),title:"Problem set",mins:120,due:du(2),done:false,slot:null},{id:uid(),title:"Essay outline",mins:60,due:du(3),done:false,slot:null},{id:uid(),title:"Email professor",mins:30,due:0,done:false,slot:null});
+  plan();
+}
+function pd(v){var m=v.match(/^(\d{4})(\d\d)(\d\d)(?:T(\d\d)(\d\d)(\d\d)?(Z)?)?$/);if(!m)return 0;
+  if(m[7])return Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+(m[6]||0));
+  return new Date(+m[1],+m[2]-1,+m[3],+(m[4]||0),+(m[5]||0)).getTime()}
+$("ics").addEventListener("change",function(ev){
+  var f=ev.target.files[0];if(!f)return;var r=new FileReader();
+  r.onload=function(){var txt=String(r.result).replace(/\r?\n[ \t]/g,""),n=0,cut=Date.now()-864e5;
+    txt.split("BEGIN:VEVENT").slice(1).forEach(function(b){
+      var g=function(k){var m=b.match(new RegExp("\\n"+k+"[^:\\n]*:([^\\r\\n]*)"));return m?m[1].trim():""};
+      var s=pd(g("DTSTART")),e=pd(g("DTEND"));
+      if(s&&e>s&&e>cut&&n<500){S.events.push({id:uid(),title:g("SUMMARY")||"Event",s:s,e:e});n++}});
+    plan();alert("Imported "+n+" upcoming events (recurring events appear once).")};
+  r.readAsText(f);ev.target.value=""});
+
+// ---------- classes and terms ----------
+var DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],cd=[],cfT=null;
+function term(id){return S.terms.filter(function(t){return t.id===id})[0]}
+function tt(x){return new Date(2000,0,1,+x.slice(0,2),+x.slice(3)).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}
+function dd(x,y){return new Date(x+"T00:00").toLocaleDateString([],y?{month:"short",day:"numeric",year:"numeric"}:{month:"short",day:"numeric"})}
+function ymd(d){return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
+function isBreak(t,k){return (t.breaks||[]).some(function(b){return k>=b.from&&k<=b.to})}
+function schoolDay(t,d){var w=d.getDay();return w>0&&w<6&&!isBreak(t,ymd(d))}
+// Rotating schedules (e.g. Green/Gold): the label advances on each school day, skipping weekends and breaks.
+function rotLabel(t,d){
+  if(!t.rot||!schoolDay(t,d))return null;
+  var n=t.rot.labels.length,x=new Date(t.rot.anchor+"T00:00"),y=new Date(d.getFullYear(),d.getMonth(),d.getDate()),k=t.rot.idx,st=y>=x?1:-1;
+  while(x.getTime()!==y.getTime()){x.setDate(x.getDate()+st);if(schoolDay(t,x))k+=st}
+  return t.rot.labels[((k%n)+n)%n]}
+function dayLab(d){var k=ymd(d);for(var i=0;i<S.terms.length;i++){var t=S.terms[i];if(t.rot&&k>=t.from&&k<=t.to){var l=rotLabel(t,d);if(l)return l}}return ""}
+// All events in a range: one-off events plus every weekly class inside its term.
+function evs(a,b,sk){
+  var o=S.events.filter(function(e){return e.e>a&&e.s<b});
+  S.classes.forEach(function(c){
+    var t=term(c.termId);if(!t)return;
+    var f=new Date(t.from+"T00:00").getTime(),z=new Date(t.to+"T23:59").getTime(),d=new Date(Math.max(a,f));d.setHours(0,0,0,0);
+    for(;d.getTime()<=Math.min(b,z);d.setDate(d.getDate()+1)){
+      if(isBreak(t,ymd(d)))continue;
+      if(c.rot){if(rotLabel(t,d)!==c.rot)continue}else if(c.days.indexOf(d.getDay())<0)continue;
+      var y=d.getFullYear(),m=d.getMonth(),n=d.getDate(),
+        s=new Date(y,m,n,+c.start.slice(0,2),+c.start.slice(3)).getTime(),e=new Date(y,m,n,+c.end.slice(0,2),+c.end.slice(3)).getTime();
+      if(e>a&&s<b){var isS=(c.skip||[]).indexOf(ymd(d))>-1;if(!isS||sk)o.push({id:"c_"+c.id+"_"+d.getTime(),title:c.name,s:s,e:e,sk:isS})}}});
+  return o}
+var cform=false;
+function C(){return view==="cls"?$("vc"):$("mc")}
+function mhead(t){return view==="cls"?"<h2 style='margin:0 0 8px'>"+t+"</h2>":"<div class='mh'><b>"+t+"</b><button class='ar' aria-label='Close' onclick='closeModal()'>&times;</button></div>"}
+function openClasses(){cfT=null;go("cls")}
+function classList(){
+  cform=false;
+  var h=mhead("Classes and terms");
+  h+="<p class='muted'>Classes repeat every week until the term ends. Edit anything any time, and delete a whole term when it's over.</p>";
+  S.terms.forEach(function(t){
+    var cs=S.classes.filter(function(c){return c.termId===t.id});
+    h+="<div class='tc'><div class='th'><b>"+esc(t.name)+"</b><span class='muted'>"+dd(t.from)+" – "+dd(t.to,1)+"</span></div>";
+    h+=cs.map(function(c){return "<div class='cr'><span>"+esc(c.name)+"<small class='muted'>"+(c.rot?esc(c.rot)+" days":c.days.map(function(d){return DN[d]}).join(" "))+" · "+tt(c.start)+" – "+tt(c.end)+"</small></span><span class='lb'><button class='alt sm2' onclick=\"classForm('"+t.id+"','"+c.id+"')\">Edit</button><button class='alt sm2' onclick=\"delClass('"+c.id+"')\">Delete</button></span></div>"}).join("")||"<p class='muted'>No classes yet.</p>";
+    h+="<div class='chips' style='margin-top:10px'><button class='alt sm2' onclick=\"classForm('"+t.id+"')\">+ Add class</button><button class='alt sm2' onclick=\"termForm('"+t.id+"')\">Edit term</button>";
+    h+=cfT===t.id?"<span class='muted'>Delete this term and its "+cs.length+" class"+(cs.length===1?"":"es")+"?</span><button class='alt sm2' style='color:var(--bad)' onclick=\"delTerm('"+t.id+"')\">Yes, delete</button><button class='alt sm2' onclick='cfT=null;classList()'>Cancel</button>":"<button class='alt sm2' onclick=\"cfT='"+t.id+"';classList()\">Delete term</button>";
+    h+="</div></div>"});
+  if(!S.terms.length)h+="<p class='muted'>No terms yet. Add your term first, then your classes.</p>";
+  h+="<button class='pri' onclick='termForm()'>+ New term</button>";
+  C().innerHTML=h}
+var tb=[],cm="",ctid="";
+function brList(){$("bl").innerHTML=tb.map(function(b,i){return "<span class='chip'>"+dd(b.from)+(b.to!==b.from?" – "+dd(b.to):"")+" <button class='x' aria-label='Remove break' onclick='rmBreak("+i+")'>&times;</button></span>"}).join("")||"<span class='muted'>None added.</span>"}
+function addBreak(){var f=$("bf").value,z=$("bz").value||f;if(!f||z<f){toast("Pick a start date, and an end date that isn't earlier.");return}tb.push({from:f,to:z});$("bf").value="";$("bz").value="";brList()}
+function rmBreak(i){tb.splice(i,1);brList()}
+function termForm(tid){
+  cform=true;
+  var t=tid?term(tid):null,n=new Date(),m=n.getMonth(),e=new Date(n);e.setDate(e.getDate()+105);
+  var nm=t?t.name:(m<5?"Spring ":m<8?"Summer ":"Fall ")+n.getFullYear(),f=t?t.from:dv(n.getTime()),z=t?t.to:dv(e.getTime()),r=t&&t.rot;
+  C().innerHTML=mhead(t?"Edit term":"New term")+"<label for='tn2'>Term name</label><input id='tn2' value=\""+esc(nm)+"\"><label for='tf'>First day of classes</label><input id='tf' type='date' value='"+f+"'><label for='tz'>Last day of the term</label><input id='tz' type='date' value='"+z+"'>"
+   +"<label style='display:flex;gap:8px;align-items:center;margin-top:16px;color:var(--ink);font-size:15px'><input type='checkbox' id='trot' style='width:auto'"+(r?" checked":"")+" onchange=\"$('rf').style.display=this.checked?'block':'none'\"> My school uses rotating days (like Green and Gold days)</label>"
+   +"<div id='rf' style='display:"+(r?"block":"none")+"'><label for='tl'>Day names, in order (separated by commas)</label><input id='tl' value=\""+esc(r?r.labels.join(", "):"Green, Gold")+"\"><label>Pick a day you know the answer for</label><div class='chips'><input id='tad' type='date' value='"+(r?r.anchor:dv(n.getTime()))+"' style='flex:1'><input id='tal' placeholder='Which day is it? e.g. Green' value=\""+esc(r?r.labels[r.idx]:"")+"\" style='flex:1'></div><p class='muted'>The days flip each school day. Weekends and no-school days don't count, so Mon, Wed, Fri can swap with Tue, Thu the next week.</p></div>"
+   +"<label>No-school days (holidays and breaks)</label><div id='bl' class='chips'></div><div class='chips' style='margin-top:8px'><input id='bf' type='date' style='flex:1' aria-label='Break starts'><input id='bz' type='date' style='flex:1' aria-label='Break ends (optional)'><button class='alt sm2' onclick='addBreak()'>Add</button></div><p class='muted'>For a single day, fill in only the first date. Classes skip these days.</p>"
+   +(t?"<p class='muted'>Changing dates changes when this term's classes show up on your calendar.</p>":"")
+   +"<button class='pri' onclick=\"saveTerm('"+(tid||"")+"')\">"+(t?"Save changes":"Save and add classes")+"</button><button class='alt' style='width:100%;margin-top:8px;padding:12px' onclick='classList()'>Back</button>";
+  tb=t?(t.breaks||[]).slice():[];brList()}
+function saveTerm(tid){
+  var n=$("tn2").value.trim(),f=$("tf").value,z=$("tz").value,rot=null;
+  if(!n||!f||!z||z<f){toast("Add a name, and make the last day after the first.");return}
+  if($("trot").checked){
+    var L=[];$("tl").value.split(",").forEach(function(x){x=x.trim();if(x&&L.map(function(y){return y.toLowerCase()}).indexOf(x.toLowerCase())<0)L.push(x)});
+    var ad=$("tad").value,ix=L.map(function(y){return y.toLowerCase()}).indexOf($("tal").value.trim().toLowerCase());
+    if(L.length<2||L.length>4){toast("Add 2 to 4 day names, like Green, Gold.");return}
+    if(!ad||ix<0){toast("Pick a date and say which day it is, using one of your day names.");return}
+    rot={labels:L,anchor:ad,idx:ix}}
+  if(tid){
+    var bad=S.classes.some(function(c){return c.termId===tid&&c.rot&&(!rot||rot.labels.indexOf(c.rot)<0)});
+    if(bad){toast("Some classes use these rotating days. Edit those classes first.");return}
+    var t=term(tid);t.name=n;t.from=f;t.to=z;t.rot=rot;t.breaks=tb.slice();plan();toast("Term updated");classList();return}
+  var t2={id:uid(),name:n,from:f,to:z,rot:rot,breaks:tb.slice()};S.terms.push(t2);plan();classForm(t2.id)}
+function setMode(i,b){var t=term(ctid);cm=i<0?"":t.rot.labels[i];b.parentNode.querySelectorAll(".chip").forEach(function(x){x.classList.remove("on")});b.classList.add("on");$("wd").style.display=cm?"none":"block"}
+function classForm(tid,cid){
+  cform=true;ctid=tid;
+  var t=term(tid),c=cid?S.classes.filter(function(x){return x.id===cid})[0]:null;cd=c?c.days.slice():[];cm=c&&c.rot?c.rot:"";
+  var rc=t&&t.rot?"<label>Which days?</label><div class='chips'><button class='chip"+(cm?"":" on")+"' onclick=\"setMode(-1,this)\">Same days every week</button>"+t.rot.labels.map(function(l,i){return "<button class='chip"+(cm===l?" on":"")+"' onclick=\"setMode("+i+",this)\">"+esc(l)+" days</button>"}).join("")+"</div>":"";
+  C().innerHTML=mhead(c?"Edit class":"Add a class")+"<label for='cn'>Class name</label><input id='cn' placeholder='e.g. Bio lecture' value=\""+(c?esc(c.name):"")+"\">"+rc
+   +"<div id='wd' style='display:"+(cm?"none":"block")+"'><label>Days it meets</label><div class='chips'>"+DN.map(function(d,i){return "<button class='chip"+(cd.indexOf(i)>-1?" on":"")+"' onclick='tgDay("+i+",this)'>"+d+"</button>"}).join("")+"</div></div>"
+   +"<label>Time</label><div class='chips'><input id='cs' type='time' value='"+(c?c.start:"09:00")+"' style='flex:1'><input id='ce' type='time' value='"+(c?c.end:"10:30")+"' style='flex:1'></div><button class='pri' onclick=\"saveClass('"+tid+"','"+(cid||"")+"')\">"+(c?"Save changes":"Add class")+"</button><button class='alt' style='width:100%;margin-top:8px;padding:12px' onclick='classList()'>Back to terms</button>";
+  $("cn").focus()}
+function tgDay(i,b){var k=cd.indexOf(i);if(k>-1)cd.splice(k,1);else cd.push(i);b.classList.toggle("on")}
+function saveClass(tid,cid){
+  var n=$("cn").value.trim(),s=$("cs").value,e=$("ce").value;
+  if(!n){$("cn").focus();return}
+  if(!cm&&!cd.length){toast("Pick at least one day.");return}
+  if(!(e>s)){toast("The end time has to be after the start.");return}
+  var days=cm?[]:cd.slice().sort();
+  if(cid){var c=S.classes.filter(function(x){return x.id===cid})[0];c.name=n;c.days=days;c.start=s;c.end=e;if(cm)c.rot=cm;else delete c.rot}
+  else{var o={id:uid(),termId:tid,name:n,days:days,start:s,end:e};if(cm)o.rot=cm;S.classes.push(o)}
+  plan();toast(cid?"Class updated":"Class added");classList()}
+function delClass(id){S.classes=S.classes.filter(function(c){return c.id!==id});plan();classList();toast("Class deleted",1)}
+function delTerm(id){S.terms=S.terms.filter(function(t){return t.id!==id});S.classes=S.classes.filter(function(c){return c.termId!==id});cfT=null;plan();classList();toast("Term deleted",1)}
+function classDay(id){
+  var p=id.split("_"),c=S.classes.filter(function(x){return x.id===p[1]})[0];if(!c)return;
+  var d=new Date(+p[2]),k=ymd(d),sk=(c.skip||[]).indexOf(k)>-1;
+  var h="<div class='mh'><b>"+esc(c.name)+"</b><button class='ar' aria-label='Close' onclick='closeModal()'>&times;</button></div><p>"+dstr(d.getTime())+", "+tt(c.start)+" to "+tt(c.end)+(sk?"<br><em>Skipped for this day</em>":"")+"</p>";
+  h+=sk?"<button class='pri' onclick=\"restoreOne('"+c.id+"','"+k+"')\">Restore this class</button>":"<button class='pri' onclick=\"skipOne('"+c.id+"','"+k+"')\">Skip this class on this day</button><button class='alt' style='width:100%;margin-top:8px;padding:12px' onclick=\"noSchool('"+c.termId+"','"+k+"')\">No school this day (skips all classes)</button>";
+  h+="<button class='alt' style='width:100%;margin-top:8px;padding:12px' onclick=\"closeModal();go('cls');classForm('"+c.termId+"','"+c.id+"')\">Edit this class</button>";
+  $("mc").innerHTML=h;$("modal").style.display="flex"}
+function skipOne(cid,k){var c=S.classes.filter(function(x){return x.id===cid})[0];if(!c)return;c.skip=(c.skip||[]).filter(function(x){return x!==k}).concat(k);plan();closeModal();toast("Class skipped for that day.",1)}
+function restoreOne(cid,k){var c=S.classes.filter(function(x){return x.id===cid})[0];if(!c)return;c.skip=(c.skip||[]).filter(function(x){return x!==k});plan();closeModal();toast("Class restored")}
+function noSchool(tid,k){var t=term(tid);if(!t)return;t.breaks=t.breaks||[];if(!isBreak(t,k))t.breaks.push({from:k,to:k});plan();closeModal();toast("No school that day.",1)}
+// ---------- feedback ----------
+// Paste a Google Form link here to send feedback there. Left empty, people copy their note and send it to you.
+var CHAT_API="/api/chat",FEEDBACK_NETLIFY=true;
+var FEEDBACK_URL="",fbk="Confusing",FBK=["Confusing","Broken","Missing","Love it"];
+function openFeedback(){
+  var h="<div class='mh'><b>Help make Nudge better</b><button class='ar' aria-label='Close' onclick='closeModal()'>&times;</button></div>";
+  var chips="<div class='chips' style='margin-top:10px'>"+FBK.map(function(k,i){return "<button class='chip"+(i===0?" on":"")+"' onclick='fbSet("+i+",this)'>"+k+"</button>"}).join("")+"</div>";
+  if(FEEDBACK_NETLIFY)h+="<label for='fbt'>What's confusing, broken or missing?</label><textarea id='fbt' rows='5' placeholder='Be as blunt as you like.'></textarea>"+chips+"<label for='fbe'>Email (optional, only if you're okay with a follow-up)</label><input id='fbe' type='email'><button class='pri' onclick='fbSend()'>Send feedback</button>";
+  else if(FEEDBACK_URL)h+="<p>Tell me what's confusing, broken or missing. Blunt is great.</p><a class='pri' style='display:block;text-align:center;text-decoration:none;margin-top:16px;padding:12px;border-radius:8px' href=\""+esc(FEEDBACK_URL)+"\" target='_blank' rel='noopener'>Open the feedback form</a>";
+  else h+="<label for='fbt'>What's confusing, broken or missing?</label><textarea id='fbt' rows='5' placeholder='Be as blunt as you like.'></textarea>"+chips+"<button class='pri' onclick='fbCopy()'>Copy my feedback</button><p class='muted'>Then paste it into a message to the person who shared Nudge with you.</p>";
+  fbk=FBK[0];$("mc").innerHTML=h;$("modal").style.display="flex";if($("fbt"))$("fbt").focus()}
+function fbSend(){
+  var t=$("fbt"),v=t.value.trim();if(!v){t.focus();return}
+  fetch("/",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({"form-name":"feedback",category:fbk,message:v,email:($("fbe").value||"").trim()}).toString()})
+    .then(function(r){if(!r.ok)throw new Error("bad");closeModal();toast("Thanks, I got it.")})
+    .catch(function(){toast("Couldn't send that. Try again in a moment.")})}
+function fbSet(i,b){fbk=FBK[i];b.parentNode.querySelectorAll(".chip").forEach(function(c){c.classList.remove("on")});b.classList.add("on")}
+function fbCopy(){
+  var t=$("fbt"),v=t.value.trim();if(!v){t.focus();return}
+  var txt="Nudge feedback ("+fbk+"): "+v;
+  try{navigator.clipboard.writeText(txt).then(function(){toast("Copied. Paste it into a message to send it.")},function(){t.value=txt;t.select();toast("Press Ctrl+C or Cmd+C to copy it.")})}
+  catch(e){t.value=txt;t.select();toast("Press Ctrl+C or Cmd+C to copy it.")}}
+// ---------- greeting ----------
+function greet(){var h=new Date().getHours(),g=h<5?"Up late":h<12?"Good morning":h<17?"Good afternoon":"Good evening";return g+(S.name?", "+S.name:"")}
+function hello(){
+  var a=document.activeElement;if(a&&a.id==="nin")return;
+  var now=Date.now(),d0=dayAt(0),d1=dayAt(1),T=S.tasks.filter(function(t){return !t.done&&t.slot});
+  var missed=T.filter(function(t){return t.slot.e<now}).length,todayN=T.filter(function(t){return t.slot.s>=d0&&t.slot.s<d1}).length;
+  var nx=T.filter(function(t){return t.slot.s>=now}).sort(function(x,y){return x.slot.s-y.slot.s})[0],st,act="";
+  if(missed){st=missed+" task"+(missed>1?"s":"")+" slipped past. Want me to re-plan?";act="<button class='lk' onclick=\"plan('redo')\">Re-plan</button>"}
+  else if(nx)st=(todayN?"You've got "+todayN+" task"+(todayN>1?"s":"")+" today. ":"")+"Next up: "+esc(nx.title)+" at "+tm(nx.slot.s)+(nx.slot.s<d1?"":" on "+dstr(nx.slot.s))+".";
+  else{st="Nothing on your plate yet. Add a task and I'll find a spot for it.";if(!S.classes.length)act="<button class='lk' onclick='openClasses()'>Add your classes</button>"}
+  $("hello").innerHTML="<div class='hi'>"+esc(greet())+(new Date().getHours()<5?"?":"")+"</div><div class='hs'><span>"+st+"</span>"+act+"<button class='lk' onclick='askName()'>"+(S.name?"Change name":"What should I call you?")+"</button></div>"}
+function askName(){
+  $("hello").innerHTML="<div class='hi'>What should I call you?</div><div class='hs'><input id='nin' class='ti' style='width:200px' maxlength='30' placeholder='Your first name' value=\""+esc(S.name||"")+"\"><button class='alt' onclick='saveName()'>Save</button></div>";
+  var i=$("nin");i.focus();i.select();i.onkeydown=function(e){if(e.key==="Enter")saveName();if(e.key==="Escape"){i.blur();hello()}}}
+function saveName(){S.name=($("nin").value||"").trim().slice(0,30);save();$("nin").blur();hello();drawMsgs()}
+// ---------- calendar ----------
+function today(){wk=0;render();scrollNow()}
+function shift(n){wk+=n;render()}
+function scrollNow(){var h=new Date().getHours()-H0-1;$("grid").scrollTop=Math.max(0,h*PX)}
+function renderCal(){hello();var WE=evs(wkDay(0).getTime(),wkDay(7).getTime(),true);
+  var a=wkDay(0),b=wkDay(6),now=Date.now(),td=dayAt(0);
+  $("ttl").textContent=a.getMonth()===b.getMonth()?a.toLocaleDateString([],{month:"long"})+" "+b.getFullYear():a.toLocaleDateString([],{month:"short"})+" – "+b.toLocaleDateString([],{month:"short"})+" "+b.getFullYear();
+  var hd="<div></div>",gut="<div class='gut'>",cols="";
+  for(var h=H0;h<H1;h++)gut+="<span style='top:"+(h-H0)*PX+"px'>"+(h%12||12)+(h<12?" am":" pm")+"</span>";
+  gut+="</div>";
+  for(var i=0;i<7;i++){
+    var d=wkDay(i),d0=d.getTime(),d1=wkDay(i+1).getTime(),it=[];
+    hd+="<div"+(d0===td?" class='td'":"")+">"+d.toLocaleDateString([],{weekday:"short"}).toUpperCase()+"<b>"+d.getDate()+"</b><small>"+esc(dayLab(d))+"</small></div>";
+    WE.forEach(function(e){if(e.s<d1&&e.e>d0)it.push({s:Math.max(e.s,d0),e:Math.min(e.e,d1),t:e.title,k:"e",id:e.id,sk:e.sk})});
+    S.tasks.forEach(function(t){if(t.slot&&t.slot.s>=d0&&t.slot.s<d1)it.push({s:t.slot.s,e:t.slot.e,t:t.title,k:"t",id:t.id,d:t.done,m:!t.done&&t.slot.e<now,o:!t.done&&WE.some(function(e){return !e.sk&&e.s<t.slot.e&&e.e>t.slot.s})})});
+    var c="<div class='col' onclick='slot(event,"+d0+")' style='height:"+(H1-H0)*PX+"px'>";
+    it.forEach(function(x){
+      var top=(x.s-d0)/36e5*PX-H0*PX,ht=(x.e-x.s)/36e5*PX;if(top+ht<0||top>(H1-H0)*PX)return;
+      c+="<div class='blk "+x.k+(x.m||x.o?" m":"")+(x.d?" d":"")+(x.sk?" sk":"")+"' tabindex='0' role='button' data-k='"+x.k+"' data-id='"+x.id+"' style='top:"+Math.max(0,top)+"px;height:"+Math.max(18,ht-2)+"px'>"+esc(x.t)+(ht>34?"<small>"+tm(x.s)+" – "+tm(x.e)+(x.sk?" · skipped":x.o?" · overlaps an event":x.m?" · missed":"")+"</small>":"")+"</div>"});
+    if(d0===td)c+="<div class='now' style='top:"+((now-d0)/36e5-H0)*PX+"px'></div>";
+    cols+=c+"</div>"}
+  $("hd").innerHTML=hd;$("bd").innerHTML=gut+cols;
+}
+// ---------- add / edit dialogs ----------
+var dur=60,CH=[["Add a task",""],["What's next today?","What's next today?"],["I fell behind, re-plan","I fell behind. Please re-plan my missed tasks."],["Break down an assignment","Help me break down an assignment into small steps. Ask me what it is."]];
+function chip(i){if(i===0){openAdd();return}$("inp").value=CH[i][1];send()}
+function toast(t,a){var e=$("toast");e.innerHTML=esc(t)+(a?" <button class='lk' style='color:var(--bg);margin-left:8px' onclick=\"undo()\">Undo</button>":"");e.style.display="block";clearTimeout(e._t);e._t=setTimeout(function(){e.style.display="none"},a?7000:3500)}
+function closeModal(){$("modal").style.display="none"}
+function dv(t){return new Date(t-new Date().getTimezoneOffset()*M).toISOString().slice(0,10)}
+function hm(h){var m=Math.round(h*60);return ("0"+Math.floor(m/60)%24).slice(-2)+":"+("0"+m%60).slice(-2)}
+function openAdd(kind,d0,h){$("modal").style.display="flex";$("mc").innerHTML="<div class='mh'><b>Add to your calendar</b><button class='ar' aria-label='Close' onclick='closeModal()'>&times;</button></div><div class='seg'><button id='tk' onclick=\"addTab('task')\">Task</button><button id='tv' onclick=\"addTab('event')\">Event</button></div><div id='af'></div>";addTab(kind||"task",d0,h)}
+function addTab(k,d0,h){
+  $("tk").classList.toggle("on",k==="task");$("tv").classList.toggle("on",k==="event");
+  if(k==="task"){dur=60;$("af").innerHTML="<label for='at'>What do you need to do?</label><input id='at' placeholder='e.g. Chem lab report'><label>How long will it take?</label><div class='chips'>"+[15,30,60,90,120,180].map(function(m){return "<button class='chip"+(m===60?" on":"")+"' onclick='setDur("+m+",this)'>"+(m<60?m+" min":m/60+" hr")+"</button>"}).join("")+"<button class='chip' onclick='otherDur(this)'>Other</button></div><input id='ao' placeholder='e.g. 45 min, 2 hr, 1h 30m' style='display:none;margin-top:8px' aria-label='Custom length'><label for='ad'>Due (optional)</label><div class='chips'><button class='chip' onclick='setDue(0)'>Today</button><button class='chip' onclick='setDue(1)'>Tomorrow</button><input id='ad' type='date' style='width:auto;flex:1'></div><button class='pri' onclick='subTask()'>Add and schedule</button>";$("at").focus()}
+  else{var t=d0?dv(d0):dv(Date.now()),b=h==null?9:h;$("af").innerHTML="<label for='an'>Name</label><input id='an' placeholder='e.g. Bio lecture'><label for='ae'>Date</label><input id='ae' type='date' value='"+t+"'><label>Start and end</label><div class='chips'><input id='as' type='time' value='"+hm(b)+"' style='flex:1'><input id='ax' type='time' value='"+hm(Math.min(b+1,23.98))+"' style='flex:1'></div><button class='pri' onclick='subEvent()'>Add event</button>";$("an").focus()}}
+function otherDur(b){b.parentNode.querySelectorAll(".chip").forEach(function(c){c.classList.remove("on")});b.classList.add("on");var o=$("ao");o.style.display="block";o.focus()}
+function parseDur(v){var m=(v||"").toLowerCase().trim().match(/^(?:(\d+(?:\.\d+)?)\s*h[a-z]*)?\s*(?:(\d+)\s*(?:m[a-z]*)?)?$/);if(!m)return 0;var n=Math.round((+m[1]||0)*60+(+m[2]||0));return n>=5&&n<=720?n:0}
+function setDur(m,b){var o=$("ao");if(o)o.style.display="none";dur=m;b.parentNode.querySelectorAll(".chip").forEach(function(c){c.classList.remove("on")});b.classList.add("on")}
+function setDue(n){$("ad").value=dv(dayAt(n))}
+function subTask(){
+  var n=$("at").value.trim();if(!n){$("at").focus();return}
+  var o=$("ao"),dm=o&&o.style.display!=="none"?parseDur(o.value):dur;if(!dm){toast("Enter a length like 45 min or 2 hr.");o.focus();return}
+  var t=mkTask(n,dm,$("ad").value);closeModal();
+  if(t.slot){var a=new Date(t.slot.s);a.setHours(0,0,0,0);wk=0;wk=Math.floor((a.getTime()-wkDay(0).getTime()+432e5)/6048e5);render();toast("Scheduled "+dstr(t.slot.s)+", "+tm(t.slot.s)+" to "+tm(t.slot.e))}
+  else toast("Added, but there's no free room in the next 14 days.")}
+function subEvent(){if(mkEvent($("an").value.trim(),$("ae").value,$("as").value,$("ax").value)){closeModal();toast("Event added")}else toast("End time must be after the start time.")}
+function slot(ev,d0){if(ev.target!==ev.currentTarget)return;openAdd("event",d0,Math.floor(ev.offsetY/PX*2)/2)}
+var drag=null;
+function openItem(k,id){
+  if(String(id).indexOf("c_")===0){classDay(id);return}
+  var it=(k==="t"?S.tasks:S.events).filter(function(x){return x.id===id})[0];if(!it)return;
+  var s=k==="t"?(it.slot&&it.slot.s):it.s,e=k==="t"?(it.slot&&it.slot.e):it.e;
+  var hh=function(t){var d=new Date(t);return hm(d.getHours()+d.getMinutes()/60)};
+  var h="<div class='mh'><b>"+(k==="t"?"Edit task":"Edit event")+"</b><button class='ar' aria-label='Close' onclick='closeModal()'>&times;</button></div>";
+  h+="<label for='xn'>Name</label><input id='xn' value=\""+esc(it.title)+"\">";
+  if(k==="t")h+="<label for='xm'>Length (minutes)</label><input id='xm' type='number' min='5' step='5' value='"+it.mins+"'><label for='xd'>Due (optional)</label><input id='xd' type='date' value='"+(it.due?dv(it.due):"")+"'>";
+  if(s)h+="<label>"+(k==="t"?"Scheduled for":"When")+"</label><div class='chips'><input id='xe' type='date' value='"+dv(s)+"' style='flex:1'><input id='xs' type='time' value='"+hh(s)+"' style='flex:1'>"+(k==="e"?"<input id='xf' type='time' value='"+hh(e)+"' style='flex:1'>":"")+"</div>";
+  h+="<button class='pri' onclick=\"saveItem('"+k+"','"+id+"')\">Save</button>";
+  if(k==="t")h+="<button class='alt' style='width:100%;margin-top:8px;padding:12px' onclick=\"tog('"+id+"');closeModal()\">"+(it.done?"Mark not done":"Mark done")+"</button>";
+  h+="<button class='alt' style='width:100%;margin-top:8px;padding:12px;color:var(--bad)' onclick=\"delItem('"+k+"','"+id+"')\">Delete</button>";
+  $("mc").innerHTML=h;$("modal").style.display="flex"}
+function saveItem(k,id){
+  var n=$("xn").value.trim();if(!n){$("xn").focus();return}
+  if(k==="t"){
+    var t=S.tasks.filter(function(x){return x.id===id})[0],m=Math.max(5,parseInt($("xm").value,10)||t.mins),d=$("xd").value;
+    var oldS=t.slot&&t.slot.s,ns=$("xe")?new Date($("xe").value+"T"+$("xs").value).getTime():0;
+    t.title=n;t.due=d?new Date(d+"T23:59").getTime():0;
+    if(t.slot&&ns&&!isNaN(ns)&&ns!==oldS){t.mins=m;t.slot={s:ns,e:ns+m*M};t.pin=true}
+    else if(m!==t.mins){t.mins=m;if(t.slot&&t.pin)t.slot.e=t.slot.s+m*M;else t.slot=null}
+    plan()}
+  else{
+    var e=S.events.filter(function(x){return x.id===id})[0],a=new Date($("xe").value+"T"+$("xs").value).getTime(),b=new Date($("xe").value+"T"+$("xf").value).getTime();
+    if(!(b>a)){toast("End time must be after the start time.");return}
+    e.title=n;e.s=a;e.e=b;plan()}
+  closeModal()}
+function delItem(k,id){
+  if(k==="t")S.tasks=S.tasks.filter(function(x){return x.id!==id});else S.events=S.events.filter(function(x){return x.id!==id});
+  plan();closeModal();toast("Deleted",1)}
+// Drag like Google Calendar: move across days and times, snapped to 15 minutes.
+function shiftT(t,days,mins){var a=new Date(t);a.setDate(a.getDate()+days);return a.getTime()+mins*M}
+function moveItem(k,id,ds,dm){
+  if(!ds&&!dm){render();return}
+  if(k==="t"){var t=S.tasks.filter(function(x){return x.id===id})[0],len=t.slot.e-t.slot.s;t.slot={s:shiftT(t.slot.s,ds,dm)};t.slot.e=t.slot.s+len;t.pin=true}
+  else{var e=S.events.filter(function(x){return x.id===id})[0],l=e.e-e.s;e.s=shiftT(e.s,ds,dm);e.e=e.s+l}
+  plan()}
+document.addEventListener("pointerdown",function(e){
+  var b=e.target.closest&&e.target.closest(".blk");if(!b||e.button>0)return;
+  drag={b:b,x:e.clientX,y:e.clientY,mv:false,id:e.pointerId};try{b.setPointerCapture(e.pointerId)}catch(x){}});
+document.addEventListener("pointermove",function(e){
+  if(!drag)return;var dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+  if(!drag.mv&&Math.abs(dx)+Math.abs(dy)<6)return;
+  drag.mv=true;drag.b.style.transform="translate("+dx+"px,"+dy+"px)";drag.b.style.zIndex=5;drag.b.style.opacity=".85"});
+document.addEventListener("pointerup",function(e){
+  if(!drag)return;var d=drag;drag=null;
+  if(!d.mv){openItem(d.b.dataset.k,d.b.dataset.id);return}
+  if(String(d.b.dataset.id).indexOf("c_")===0){toast("Classes repeat, so click one to skip a day or edit it.");render();return}
+  var cw=($("bd").getBoundingClientRect().width-52)/7;
+  moveItem(d.b.dataset.k,d.b.dataset.id,Math.round((e.clientX-d.x)/cw),Math.round((e.clientY-d.y)/PX*4)*15)});
+document.addEventListener("pointercancel",function(){if(drag){drag=null;render()}});
+document.addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target.classList&&e.target.classList.contains("blk"))openItem(e.target.dataset.k,e.target.dataset.id)});
+$("modal").addEventListener("click",function(e){if(e.target===this)closeModal()});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeModal()});
+// ---------- navigation ----------
+function go(v){view=v;cform=false;if(v==="chat"&&!cur())newChat();render()}
+function toggleDrawer(){if(!cur())newChat();drawer=!drawer;render();if(drawer)$("inp").focus()}
+function cur(){return S.chats.filter(function(c){return c.id===S.cur})[0]}
+function newChat(){var e=S.chats.filter(function(c){return !c.msgs.length})[0];if(e){S.cur=e.id;save();render();return}var c={id:uid(),title:"New chat",t:Date.now(),msgs:[]};S.chats.unshift(c);S.chats=S.chats.slice(0,30);S.cur=c.id;save();render()}
+function open(id){S.cur=id;view="chat";render()}
+function delChat(id){S.chats=S.chats.filter(function(c){return c.id!==id});if(S.cur===id)S.cur=null;save();if(!S.cur&&(view==="chat"||(view==="cal"&&drawer)))newChat();else render()}
+function render(){
+  $("undob").disabled=!UND.length;$("redob").disabled=!RED.length;
+  $("vcal").hidden=view!=="cal";$("vchat").hidden=view!=="chat";$("vall").hidden=view!=="all";$("vcls").hidden=view!=="cls";
+  $("vcal").style.display=view==="cal"?"flex":"none";
+  $("nvc").classList.toggle("on",view==="cal");$("nvh").classList.toggle("on",view==="chat"||view==="all");$("nvk").classList.toggle("on",view==="cls");
+  $("rec").innerHTML=sorted().slice(0,5).map(function(c){return "<div class='rr"+(c.id===S.cur&&view==="chat"?" on":"")+"'><span class='lt' id='rl_"+c.id+"'><button class='rc' title='Double-click to rename' onclick=\"clk('"+c.id+"')\" ondblclick=\"dbl('"+c.id+"')\">"+(c.pin?"&#128204; ":"")+esc(c.title)+"</button></span><button class='dots' aria-label='Chat options' aria-haspopup='menu' onclick=\"cmenu(event,'"+c.id+"')\">&#8943;</button></div>"}).join("");
+  if(view==="all")$("vall").innerHTML="<h2 style='padding-top:16px'>All chats</h2>"+(sorted().map(function(c){return "<div class='li'><span class='lt' id='lt_"+c.id+"'><button class='rc' onclick=\"open('"+c.id+"')\">"+(c.pin?"&#128204; ":"")+esc(c.title)+"<span class='sm'>"+new Date(c.t).toLocaleDateString([],{month:"short",day:"numeric"})+" · "+c.msgs.length+" messages</span></button></span><span class='lb'><button class='alt' onclick=\"pinChat('"+c.id+"')\">"+(c.pin?"Unpin":"Pin")+"</button><button class='alt' onclick=\"renameChat('"+c.id+"',$('lt_"+c.id+"'))\">Rename</button><button class='alt' onclick=\"delChat('"+c.id+"')\">Delete</button></span></div>"}).join("")||"<p class='empty'>No chats yet. Open the Chat button on the calendar to start one.</p>");
+  $("drawer").style.display=view==="cal"&&drawer?"block":"none";
+  var box=$("chatbox");
+  if(view==="chat")$("vchat").appendChild(box);else if(view==="cal"&&drawer)$("drawer").appendChild(box);else document.body.appendChild(box);
+  box.style.display=(view==="chat"||(view==="cal"&&drawer))?"flex":"none";
+  var cc=cur();$("ctitle").textContent=cc?cc.title:"Ask Nudge";$("pinb").textContent=cc&&cc.pin?"Unpin":"Pin";
+  if(view==="cls"&&!cform)classList();
+  if(view==="cal")renderCal();
+  drawMsgs();
+}
+// ---------- chat list: pin, rename, reopen ----------
+function sorted(){return S.chats.filter(function(c){return c.msgs.length}).sort(function(a,b){return (b.pin?1:0)-(a.pin?1:0)||b.t-a.t})}
+function pinChat(id){var c=S.chats.filter(function(x){return x.id===id})[0];if(!c)return;c.pin=!c.pin;save();render();toast(c.pin?"Chat pinned":"Chat unpinned")}
+function renameChat(id,host){
+  var c=S.chats.filter(function(x){return x.id===id})[0];if(!c)return;host=host||$("ctitle");
+  host.innerHTML="<input class='ti' aria-label='Chat name' value=\""+esc(c.title)+"\">";
+  var i=host.firstChild,done=false;i.focus();i.select();
+  function fin(ok){if(done)return;done=true;var v=i.value.trim();if(ok&&v){c.title=v.slice(0,60);c.named=true;save()}render()}
+  i.onkeydown=function(e){if(e.key==="Enter")fin(true);if(e.key==="Escape")fin(false)};i.onblur=function(){fin(true)}}
+var ct=null;
+function clk(id){clearTimeout(ct);ct=setTimeout(function(){open(id)},220)}
+function dbl(id){clearTimeout(ct);renameChat(id,$("rl_"+id))}
+function closeMenu(){$("menu").style.display="none"}
+function cmenu(e,id){
+  e.stopPropagation();var c=S.chats.filter(function(x){return x.id===id})[0];if(!c)return;
+  var m=$("menu"),r=e.currentTarget.getBoundingClientRect();
+  m.innerHTML="<button role='menuitem' onclick=\"renameChat('"+id+"',$('rl_"+id+"'))\">Rename</button><button role='menuitem' onclick=\"pinChat('"+id+"')\">"+(c.pin?"Unpin":"Pin")+"</button><button role='menuitem' style='color:var(--bad)' onclick=\"delChat('"+id+"');toast('Chat deleted')\">Delete</button>";
+  m.style.display="block";m.style.left=Math.min(r.left,window.innerWidth-170)+"px";m.style.top=Math.min(r.bottom+4,window.innerHeight-140)+"px"}
+document.addEventListener("click",closeMenu);
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeMenu()});
+window.addEventListener("resize",closeMenu);
+// ---------- chat ----------
+function drawMsgs(){
+  var c=cur(),m=$("msgs");
+  m.innerHTML=c&&c.msgs.length?c.msgs.map(function(x){return "<div class='m "+x.r+"'>"+esc(x.c)+"</div>"}).join(""):"<p class='empty'>"+esc(greet())+". Tell me what's on your plate, or tap one of these.</p><div class='sug'>"+CH.map(function(x,i){return "<button onclick='chip("+i+")'>"+x[0]+"</button>"}).join("")+"</div>";
+  m.scrollTop=m.scrollHeight}
+function SYS(){return [
+"You're Nudge, a planning buddy inside a student's calendar app. Talk the way a smart, warm friend would: natural, relaxed and direct. Use plain everyday language, contractions, and short replies (usually one to four sentences). Write in plain text with no markdown, no headings, and no bullet lists unless the student asks for a list.",
+"Don't sound like a customer-service bot. Skip stock lines like 'I'd be happy to help' or 'Certainly!'. Don't repeat the request back, don't mention your tools, and don't over-explain. After you change something, say it the way a person would, like 'Done, I put it Thursday at 3:15 so it's clear of your classes.'",
+"If something important is missing (like how long a task will take or when it's due), ask one quick question instead of guessing. Notice what a good friend would: a packed day, a deadline sneaking up, a task that keeps getting missed. Mention it gently without nagging. Be encouraging when it's earned and honest when a plan looks too tight. Match the student's energy, and use an emoji only if they do.",
+"When they want help with a task, think it through with them: break it into small, doable steps, suggest an order, and offer to add those steps as tasks.",
+"Facts: "+(S.name?"the student's name is "+S.name+". ":"")+"it is now "+new Date().toString().slice(0,33)+". You can add tasks and events, check the schedule, mark tasks done or delete them, re-plan missed tasks, change planner rules, add terms (including rotating day schedules like Green and Gold days, and no-school breaks) and weekly or rotating classes, and delete a whole term (always confirm with the student before deleting a term). The app only places tasks in free time, never over events, with gaps between blocks. Never say you changed something unless it actually worked, and if something fails or there's no room, say so plainly and suggest a fix."
+].join("\n\n")}
+function find(t){t=(t||"").toLowerCase();return S.tasks.filter(function(x){return x.title.toLowerCase().indexOf(t)>-1})[0]}
+var TOOLS=[
+{name:"add_task",description:"Add a task and auto-schedule it into free time.",inputSchema:{type:"object",properties:{title:{type:"string"},minutes:{type:"integer"},due_date:{type:"string",description:"YYYY-MM-DD, optional"}},required:["title","minutes"]},
+ execute:function(a){mkTask(a.title,a.minutes,a.due_date);var t=S.tasks[S.tasks.length-1];return t.slot?"Scheduled "+dstr(t.slot.s)+" "+tm(t.slot.s)+" to "+tm(t.slot.e):"Added, but no room in the next 14 days."}},
+{name:"add_event",description:"Add a fixed event such as a class or appointment.",inputSchema:{type:"object",properties:{title:{type:"string"},date:{type:"string",description:"YYYY-MM-DD"},start:{type:"string",description:"HH:MM 24h"},end:{type:"string",description:"HH:MM 24h"}},required:["title","date","start","end"]},
+ execute:function(a){if(!mkEvent(a.title,a.date,a.start,a.end))throw new Error("Invalid time range");return "Event added. Affected tasks were re-placed."}},
+{name:"get_schedule",description:"List events and scheduled tasks for the next 7 days, plus tasks with no room.",inputSchema:{type:"object",properties:{}},
+ execute:function(){var o=[],a=dayAt(0),b=dayAt(7);
+  evs(a,b).forEach(function(e){if(e.e>a&&e.s<b)o.push([e.s,dstr(e.s)+" "+tm(e.s)+"-"+tm(e.e)+" "+e.title+" (event)"])});
+  S.tasks.forEach(function(t){if(!t.done&&t.slot&&t.slot.s<b)o.push([t.slot.s,dstr(t.slot.s)+" "+tm(t.slot.s)+"-"+tm(t.slot.e)+" "+t.title+(t.slot.e<Date.now()?" (missed)":"")])});
+  o.sort(function(x,y){return x[0]-y[0]});
+  return {items:o.slice(0,40).map(function(x){return x[1]}),no_room:S.tasks.filter(function(t){return !t.done&&!t.slot}).map(function(t){return t.title})}}},
+{name:"update_task",description:"Mark a task done, undo done, or delete it. Matches on part of the title.",inputSchema:{type:"object",properties:{title:{type:"string"},action:{type:"string",enum:["complete","uncomplete","delete"]}},required:["title","action"]},
+ execute:function(a){var t=find(a.title);if(!t)throw new Error("No matching task");
+  if(a.action==="delete")S.tasks=S.tasks.filter(function(x){return x!==t});else t.done=a.action==="complete";plan();return "Done: "+a.action+" "+t.title}},
+{name:"add_term",description:"Create a school term (semester or year) with start and end dates.",inputSchema:{type:"object",properties:{name:{type:"string"},start_date:{type:"string",description:"YYYY-MM-DD"},end_date:{type:"string",description:"YYYY-MM-DD"},rotation_labels:{type:"array",items:{type:"string"},description:"optional rotating day names in order, e.g. Green, Gold"},rotation_anchor_date:{type:"string",description:"YYYY-MM-DD of a known day"},rotation_anchor_label:{type:"string",description:"which rotation day that date is"}},required:["name","start_date","end_date"]},
+ execute:function(a){if(!(a.end_date>a.start_date))throw new Error("End date must be after start date");var t={id:uid(),name:a.name,from:a.start_date,to:a.end_date,breaks:[]};
+  if(a.rotation_labels&&a.rotation_labels.length>1){var L=a.rotation_labels.slice(0,4),ix=L.map(function(x){return String(x).toLowerCase()}).indexOf(String(a.rotation_anchor_label||"").toLowerCase());
+   if(!a.rotation_anchor_date||ix<0)throw new Error("For rotating days I need one date and which day name it is, e.g. Green on 2026-08-24");t.rot={labels:L,anchor:a.rotation_anchor_date,idx:ix}}
+  S.terms.push(t);plan();return "Term created."}},
+{name:"add_no_school",description:"Add a no-school break (holiday) to a term. Classes skip these days and rotating days don't advance.",inputSchema:{type:"object",properties:{start_date:{type:"string"},end_date:{type:"string",description:"optional, same as start for one day"},term:{type:"string"}},required:["start_date"]},
+ execute:function(a){var t=a.term?S.terms.filter(function(x){return x.name.toLowerCase()===a.term.toLowerCase()})[0]:S.terms[S.terms.length-1];if(!t)throw new Error("No term yet");(t.breaks=t.breaks||[]).push({from:a.start_date,to:a.end_date||a.start_date});plan();return "Break added."}},
+{name:"add_class",description:"Add a class that repeats weekly during a term. If term is omitted, the most recent term is used.",inputSchema:{type:"object",properties:{name:{type:"string"},days:{type:"array",items:{type:"string"},description:"e.g. mon, wed"},start:{type:"string",description:"HH:MM 24h"},end:{type:"string",description:"HH:MM 24h"},term:{type:"string"},rotation_day:{type:"string",description:"for rotating schedules, the day name the class meets on, e.g. Green"}},required:["name","start","end"]},
+ execute:function(a){var t=a.term?S.terms.filter(function(x){return x.name.toLowerCase()===a.term.toLowerCase()})[0]:S.terms[S.terms.length-1];
+  if(!t)throw new Error("No term yet. Ask for the term name and dates, then create the term first.");
+  var d=(a.days||[]).map(function(x){return ["sun","mon","tue","wed","thu","fri","sat"].indexOf(String(x).toLowerCase().slice(0,3))}).filter(function(i){return i>-1}).sort(function(x,y){return x-y});
+  if(!(a.end>a.start))throw new Error("End must be after start");
+  if(a.rotation_day){var rl=(t.rot?t.rot.labels:[]).filter(function(x){return x.toLowerCase()===String(a.rotation_day).toLowerCase()})[0];if(!rl)throw new Error("That term has no rotating day called "+a.rotation_day);
+   S.classes.push({id:uid(),termId:t.id,name:a.name,days:[],start:a.start,end:a.end,rot:rl});plan();return "Class added to "+t.name+" on "+rl+" days"}
+  if(!d.length)throw new Error("Need at least one valid day");
+  S.classes.push({id:uid(),termId:t.id,name:a.name,days:d,start:a.start,end:a.end});plan();return "Class added to "+t.name}},
+{name:"delete_term",description:"Delete a term and all of its classes. Confirm with the student first.",inputSchema:{type:"object",properties:{name:{type:"string"}},required:["name"]},
+ execute:function(a){var t=S.terms.filter(function(x){return x.name.toLowerCase()===String(a.name).toLowerCase()})[0];if(!t)throw new Error("No term with that name");
+  S.terms=S.terms.filter(function(x){return x!==t});S.classes=S.classes.filter(function(c){return c.termId!==t.id});plan();return "Deleted "+t.name+" and its classes."}},
+{name:"skip_class_day",description:"Skip (or restore) one class on one date, e.g. teacher absent. For a day with no school at all, use add_no_school instead.",inputSchema:{type:"object",properties:{class_name:{type:"string"},date:{type:"string",description:"YYYY-MM-DD"},action:{type:"string",enum:["skip","restore"]}},required:["class_name","date","action"]},
+ execute:function(a){var q=String(a.class_name).toLowerCase(),c=S.classes.filter(function(x){return x.name.toLowerCase().indexOf(q)>-1})[0];if(!c)throw new Error("No class with that name");
+  c.skip=(c.skip||[]).filter(function(x){return x!==a.date});if(a.action!=="restore")c.skip.push(a.date);plan();return c.name+(a.action==="restore"?" restored on ":" skipped on ")+a.date}},
+{name:"reschedule_missed",description:"Re-plan tasks whose time passed without being done. Nothing else moves.",inputSchema:{type:"object",properties:{}},execute:function(){plan("redo");return "Missed tasks re-planned."}},
+{name:"set_rules",description:"Change planner rules. Only include fields to change.",inputSchema:{type:"object",properties:{buffer_minutes:{type:"integer"},daily_cap_minutes:{type:"integer"},day_start_hour:{type:"integer"},day_end_hour:{type:"integer"}}},
+ execute:function(a){var s=S.set;if(a.buffer_minutes>=0)s.buf=a.buffer_minutes;if(a.daily_cap_minutes>=30)s.cap=a.daily_cap_minutes;if(a.day_start_hour>=0)s.ds=a.day_start_hour;if(a.day_end_hour>s.ds)s.de=a.day_end_hour;plan("all");return "Rules updated and future tasks re-packed."}}
+];
+function send(){
+  var i=$("inp"),t=i.value.trim(),c=cur();if(!t||busy||!c)return;
+  c.msgs.push({r:"user",c:t});if(c.msgs.length===1&&!c.named)c.title=t.slice(0,40);c.t=Date.now();i.value="";save();render();ask(c)}
+$("inp").addEventListener("keydown",function(e){if(e.key==="Enter")send()});
+async function askApi(c,out){
+  var msgs=c.msgs.slice(0,-1).slice(-30).map(function(m){return{role:m.r,content:m.c}});
+  while(msgs.length&&msgs[0].role!=="user")msgs.shift();
+  var tools=TOOLS.map(function(t){return{name:t.name,description:t.description,input_schema:t.inputSchema}});
+  for(var i=0;i<6;i++){
+    var res=await fetch(CHAT_API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({system:SYS(),messages:msgs,tools:tools})});
+    if(!res.ok){var er=await res.json().catch(function(){return{}});throw new Error(er.error||("HTTP "+res.status))}
+    var d=await res.json(),txt=d.content.filter(function(b){return b.type==="text"}).map(function(b){return b.text}).join("\n").trim();
+    if(d.stop_reason!=="tool_use")return txt;
+    msgs.push({role:"assistant",content:d.content});
+    var rs=[];
+    d.content.filter(function(b){return b.type==="tool_use"}).forEach(function(b){
+      var tl=TOOLS.filter(function(t){return t.name===b.name})[0],r,bad=false;
+      try{r=tl?tl.execute(b.input||{}):"Unknown tool"}catch(e){r=String(e.message||e);bad=true}
+      rs.push({type:"tool_result",tool_use_id:b.id,content:typeof r==="string"?r:JSON.stringify(r),is_error:bad})});
+    msgs.push({role:"user",content:rs});
+    if(txt){out.c=txt;drawMsgs()}}
+  return "I got a bit tangled up there. Try asking again?"}
+async function ask(c){
+  busy=true;var out={r:"assistant",c:"Thinking..."};c.msgs.push(out);drawMsgs();
+  try{
+    if(CHAT_API)out.c=(await askApi(c,out))||"Done.";
+    else{
+      var sm=typeof claude!=="undefined"?await claude.use("sample"):null;
+      if(!sm)out.c="I can't chat from this view, but you can still use + Add to put things on your calendar.";
+      else{var h=c.msgs.slice(0,-1).map(function(m){return{role:m.r,content:m.c}});h[0].content=SYS()+"\n\n"+h[0].content;
+        var r=await sm(h,{cache:false,tools:TOOLS,onText:function(x){out.c=x.text||out.c;drawMsgs()}});out.c=r.text||"Done."}}
+  }catch(e){out.c="Hmm, that didn't go through"+(CHAT_API&&e&&e.message?" ("+e.message+")":"")+". Try again, or use + Add to put things on the calendar."}
+  busy=false;save();render()}
+if(drawer&&!cur())newChat();plan();setInterval(function(){if(view==="cal"&&!drag)renderCal()},60000);
+setTimeout(scrollNow,50);
+</script>
+</body>
+</html>
